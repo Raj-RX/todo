@@ -9,9 +9,16 @@ import (
 
 func CreateUser(name, email, password string) (string, error) {
 	// language=SQL
+	SQLEsist := `SELECT id ,name ,email, password From users Where email = $1 and password = $2`
+	var user models.User
+	err := database.Tutorial.Get(&user, SQLEsist, email, password)
+	if user.Email == email && user.Password == password {
+		return "Data Already Exist", nil
+	}
+
 	SQL := `INSERT INTO users(name, email , password) VALUES ($1, $2 , $3) RETURNING id;`
 	var userID string
-	err := database.Tutorial.Get(&userID, SQL, name, email, password)
+	err = database.Tutorial.Get(&userID, SQL, name, email, password)
 	if err != nil {
 		return "", err
 	}
@@ -89,4 +96,27 @@ func CreateTask(task models.Task, user models.User) (string, error) {
 		return " ", err
 	}
 	return TaskId, err
+}
+
+func GetTask(user *models.User) []string {
+	SQL := `SELECT taskName from task where taskid = $1`
+	var taskName = make([]string, 0)
+	err := database.Tutorial.Select(&taskName, SQL, user.ID)
+	if err != nil {
+		fmt.Println("Error to get data from table")
+		return nil
+	}
+	return taskName
+
+}
+
+func SetLogout(user *models.User) error {
+	// language=sql
+	SQL := `Update sessions set log_out = now() where uid = $1`
+	_, err := database.Tutorial.Exec(SQL, user.ID)
+	if err != nil {
+
+		return err
+	}
+	return nil
 }

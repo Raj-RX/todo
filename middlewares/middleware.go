@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"github.com/tejashwikalptaru/tutorial/database/helper"
 	"github.com/tejashwikalptaru/tutorial/models"
 	"net/http"
@@ -23,7 +22,7 @@ func Middleware(next http.Handler) http.Handler {
 		user, err := helper.GetUserBySession(apiKey)
 
 		if err != nil || user == nil {
-			logrus.WithError(err).Errorf("failed to get user with token: %s", apiKey)
+			//logrus.WithError(err).Errorf("failed to get user with token: %s", apiKey)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}

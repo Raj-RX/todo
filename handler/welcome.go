@@ -83,6 +83,12 @@ func Login(writer http.ResponseWriter, request *http.Request) {
 
 func Logout(writer http.ResponseWriter, request *http.Request) {
 	// Logout the User or update sessions table -> change logout time from null to timeNow
+	userDetail := middlewares.UserContext(request)
+	err := helper.SetLogout(userDetail)
+	if err != nil {
+		writer.Write([]byte("Some thing went Wrong"))
+		return
+	}
 
 }
 
@@ -93,8 +99,12 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 	err := json.NewDecoder(request.Body).Decode(&userDetail)
 	writer.Write([]byte(userDetail.Name))
 	//fmt.Println("Hai->>")
-	_, err = helper.CreateUser(userDetail.Name, userDetail.Email, userDetail.Password)
-
+	str, err := helper.CreateUser(userDetail.Name, userDetail.Email, userDetail.Password)
+	if str == " Data Already Exist" {
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte(str))
+		return
+	}
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
@@ -131,5 +141,14 @@ func UpdateTask(writer http.ResponseWriter, request *http.Request) {
 
 func GetTask(writer http.ResponseWriter, request *http.Request) {
 	//	Get all the active task in the task table
+
+	userDetail := middlewares.UserContext(request)
+
+	list := helper.GetTask(userDetail)
+	err := json.NewEncoder(writer).Encode(list)
+	if err != nil {
+		writer.WriteHeader(500)
+		return
+	}
 
 }
